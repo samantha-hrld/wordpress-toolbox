@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Boîte à Outils WordPress</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Icônes SVG simples
+        const Icons = {
+            Search: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+            Play: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>,
+            Link: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
+            Filter: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>,
+            Package: () => <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>,
+        };
+
+        const categoryConfig = {
+            'SEO': { emoji: '📊', color: 'bg-blue-500', lightColor: 'bg-blue-100 text-blue-700' },
+            'Performance': { emoji: '⚡', color: 'bg-yellow-500', lightColor: 'bg-yellow-100 text-yellow-700' },
+            'E-commerce': { emoji: '🛒', color: 'bg-green-500', lightColor: 'bg-green-100 text-green-700' },
+            'Design': { emoji: '🎨', color: 'bg-purple-500', lightColor: 'bg-purple-100 text-purple-700' },
+            'Sécurité': { emoji: '🔒', color: 'bg-red-500', lightColor: 'bg-red-100 text-red-700' },
+            'Marketing': { emoji: '📢', color: 'bg-pink-500', lightColor: 'bg-pink-100 text-pink-700' },
+            'Divers': { emoji: '🔧', color: 'bg-gray-500', lightColor: 'bg-gray-100 text-gray-700' },
+            'Outil': { emoji: '🛠️', color: 'bg-teal-500', lightColor: 'bg-teal-100 text-teal-700' },
+            'Image': { emoji: '🖼️', color: 'bg-indigo-500', lightColor: 'bg-indigo-100 text-indigo-700' },
+            'Hébergement': { emoji: '🌐', color: 'bg-cyan-500', lightColor: 'bg-cyan-100 text-cyan-700' },
+            'Productivité': { emoji: '⏱️', color: 'bg-orange-500', lightColor: 'bg-orange-100 text-orange-700' },
+            'Développement': { emoji: '💻', color: 'bg-emerald-500', lightColor: 'bg-emerald-100 text-emerald-700' },
+        };
+
+        const plugins = [
+            { name: 'Yoast SEO', description: 'Un plugin SEO très complet (analyse de contenu, métadonnées, sitemap, etc.)', category: 'SEO', video: 'https://www.youtube.com/watch?v=qMlsZud4Z2o', type: 'plugin' },
+            { name: 'WP Fastest Cache', description: 'Le meilleur plugin de cache gratuit. Attention si tu as Hostinger, il faut laisser LiteSpeed Cache.', category: 'Performance', type: 'plugin' },
+            { name: 'WooCommerce', description: 'Transforme ton site WordPress en boutique en ligne.', category: 'E-commerce', video: 'https://www.youtube.com/watch?v=IUz16gX7XHE', type: 'plugin' },
+            { name: 'Elementor', description: 'Le constructeur de page le plus populaire. Hyper intuitif (version gratuite suffit pour 80% des cas).', category: 'Design', video: 'https://www.youtube.com/watch?v=u197eui92jA', type: 'plugin' },
+            { name: 'UpdraftPlus', description: 'Plugin pour configurer la sauvegarde automatique.', category: 'Sécurité', video: 'https://www.youtube.com/watch?v=7lAIkAkB-0k', type: 'plugin' },
+            { name: 'GA Google Analytics', description: "Pour suivre les visites sur ton site avec l'outil le plus précis.", category: 'Divers', video: 'https://www.youtube.com/watch?v=ZYEkwOOekQg', type: 'plugin' },
+            { name: 'Formidable Forms', description: 'Le plugin de formulaire le plus intuitif et complet.', category: 'Divers', video: 'https://www.youtube.com/watch?v=7oKXXJZKEVg', type: 'plugin' },
+            { name: 'WP Vivid', description: 'Meilleur plugin gratuit pour faire une migration de site.', category: 'Divers', video: 'https://www.youtube.com/watch?v=OKPN0eP4lmg', type: 'plugin' },
+            { name: 'MailerLite', description: 'Récolter des emails et envoyer des newsletters.', category: 'Marketing', video: 'https://www.youtube.com/watch?v=jaaKHS70FzU', type: 'plugin' },
+            { name: 'Solid Security', description: 'Plugin de sécurité très complet.', category: 'Sécurité', video: 'https://www.youtube.com/watch?v=TUIG03XluEE', type: 'plugin' },
+            { name: 'Imagify', description: "Compression et conversion d'images (= site plus rapide).", category: 'Performance', video: 'https://www.youtube.com/watch?v=XOMZ-H0UQdw', type: 'plugin' },
+            { name: 'Stripe', description: 'Accepter les paiements en carte bancaire.', category: 'E-commerce', video: 'https://www.youtube.com/watch?v=iksh_oZ1ghI', type: 'plugin' },
+            { name: 'GoAffPro', description: "Créer un programme d'affiliation.", category: 'Marketing', video: 'https://www.youtube.com/watch?v=Ik3-OBYw8GA', type: 'plugin' },
+            { name: 'AliDropship', description: 'Faire du dropshipping sur WordPress.', category: 'E-commerce', video: 'https://www.youtube.com/watch?v=9RpDsvbUTGs', type: 'plugin' },
+            { name: 'HBook', description: 'Créer un site de réservation pour hôtels / gîtes.', category: 'Divers', video: 'https://www.youtube.com/watch?v=7F-A6OvsLaU', type: 'plugin' },
+            { name: 'Calendly', description: 'Intégrer un calendrier de réservation sur ton site.', category: 'Divers', video: 'https://www.youtube.com/watch?v=Bcp9MWGQ23M', type: 'plugin' },
+        ];
+
+        const tools = [
+            { name: 'OceanWP', description: 'Le meilleur thème gratuit, pour tous tes projets.', category: 'Design', type: 'tool' },
+            { name: 'GTMetrix', description: 'Pour tester la rapidité de ton site.', category: 'Performance', link: 'https://gtmetrix.com/', type: 'tool' },
+            { name: 'Hostinger', description: 'Hébergeur avec le meilleur rapport qualité/prix.', category: 'Hébergement', video: 'https://www.youtube.com/watch?v=TxNgD6u4_v0', type: 'tool' },
+            { name: 'ILoveIMG', description: 'Outil gratuit pour compresser ou convertir des images.', category: 'Image', link: 'https://www.iloveimg.com/fr/compresser-image', type: 'tool' },
+            { name: 'RemoveBG', description: "Retirer l'arrière-plan d'une image en un clic.", category: 'Image', link: 'https://www.remove.bg/fr/upload', type: 'tool' },
+            { name: 'Toggl', description: 'Outil gratuit pour tracker ton temps sur chaque tâche.', category: 'Productivité', link: 'https://toggl.com/', type: 'tool' },
+            { name: 'InstaWP', description: 'Créer des sites de test en quelques secondes.', category: 'Développement', video: 'https://www.youtube.com/watch?v=J1JAvVYHh', type: 'tool' },
+        ];
+
+        const allItems = [...plugins, ...tools];
+
+        function App() {
+            const [search, setSearch] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Tous');
+            const [selectedType, setSelectedType] = useState('Tous');
+
+            const categories = ['Tous', ...new Set(allItems.map(item => item.category))];
+
+            const filteredItems = allItems.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
+                                     item.description.toLowerCase().includes(search.toLowerCase());
+                const matchesCategory = selectedCategory === 'Tous' || item.category === selectedCategory;
+                const matchesType = selectedType === 'Tous' || 
+                                   (selectedType === 'Plugins' && item.type === 'plugin') ||
+                                   (selectedType === 'Outils' && item.type === 'tool');
+                return matchesSearch && matchesCategory && matchesType;
+            });
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-6">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="inline-flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-blue-500 rounded-xl">
+                                    <Icons.Package />
+                                </div>
+                                <h1 className="text-2xl md:text-4xl font-bold text-white">La Boîte à Outils WordPress</h1>
+                            </div>
+                            <p className="text-blue-200 text-lg">Extensions et outils essentiels pour créer ton site</p>
+                        </div>
+
+                        {/* Filtres */}
+                        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-6 border border-white/20">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                {/* Recherche */}
+                                <div className="relative flex-1">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300">
+                                        <Icons.Search />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher un plugin ou outil..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    />
+                                </div>
+
+                                {/* Type */}
+                                <div className="flex gap-2">
+                                    {['Tous', 'Plugins', 'Outils'].map(type => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setSelectedType(type)}
+                                            className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                                                selectedType === type
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white/10 text-blue-200 hover:bg-white/20'
+                                            }`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Catégories */}
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                <div className="text-blue-300 mr-2 self-center">
+                                    <Icons.Filter />
+                                </div>
+                                {categories.map(cat => {
+                                    const config = categoryConfig[cat];
+                                    return (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                selectedCategory === cat
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-white/10 text-blue-200 hover:bg-white/20'
+                                            }`}
+                                        >
+                                            {config && <span>{config.emoji}</span>}
+                                            {cat}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Compteur */}
+                        <p className="text-blue-300 mb-4">
+                            {filteredItems.length} résultat{filteredItems.length > 1 ? 's' : ''}
+                        </p>
+
+                        {/* Grille */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredItems.map((item, index) => {
+                                const config = categoryConfig[item.category] || { emoji: '📦', color: 'bg-gray-500', lightColor: 'bg-gray-100 text-gray-700' };
+                                return (
+                                    <div
+                                        key={index}
+                                        className="bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:scale-[1.02] hover:shadow-xl"
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 ${config.color} rounded-lg text-white text-xl`}>
+                                                    {config.emoji}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-white text-lg">{item.name}</h3>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${config.lightColor}`}>
+                                                        {item.category}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${
+                                                item.type === 'plugin' ? 'bg-green-500/20 text-green-300' : 'bg-orange-500/20 text-orange-300'
+                                            }`}>
+                                                {item.type === 'plugin' ? 'Plugin' : 'Outil'}
+                                            </span>
+                                        </div>
+
+                                        <p className="text-blue-200 text-sm mb-4 leading-relaxed">
+                                            {item.description}
+                                        </p>
+
+                                        <div className="flex gap-2">
+                                            {item.video && (
+                                                <a
+                                                    href={item.video}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm transition-colors"
+                                                >
+                                                    <Icons.Play />
+                                                    Voir le tuto
+                                                </a>
+                                            )}
+                                            {item.link && (
+                                                <a
+                                                    href={item.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg text-sm transition-colors"
+                                                >
+                                                    <Icons.Link />
+                                                    Accéder
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="text-center mt-8 text-blue-400 text-sm">
+                            💡 Clique sur "Voir le tuto" pour accéder aux guides vidéo
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
